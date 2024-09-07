@@ -1,0 +1,51 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: todolist
+
+  sql:
+    init:
+      platform: postgres
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/todolist
+    username: postgres
+    password: Zina2015
+
+  jpa:
+    jpa:
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    com.softserve.itacademy: INFO
+  logback:
+    rollingpolicy:
+      clean-history-on-start: true
+  file:
+    name: logs/todolist.log # Логи записуватимуться у файл logs/todolist.log
+
+# Конфігурація для H2 (закоментована)
+# Розкоментуйте цей блок, якщо хочете переключитися на H2 для тестування
+# spring:
+#   datasource:
+#     platform: h2
+#     url: jdbc:h2:mem:testdb
+#     driver-class-name: org.h2.Driver
+#     username: sa
+#     password:
+#   jpa:
+#     hibernate:
+#       ddl-auto: create-drop # Створювати і видаляти схему при перезапуску (для тестування)
+#   h2:
+#     console:
+#       enabled: true # Включає консоль H2 для перегляду бази даних у браузері
