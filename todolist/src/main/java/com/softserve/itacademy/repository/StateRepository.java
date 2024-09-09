@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface StateRepository extends JpaRepository<State, Long> {
 
-// Implement the two methods:
-
     // Method for retrieving a State by name
-    // Method for retrieving all State objects sorted by name
+    Optional<State> findByName(String name);
 
+    // Method for retrieving all State objects sorted by name
+    List<State> findAllByOrderByNameAsc();
 }

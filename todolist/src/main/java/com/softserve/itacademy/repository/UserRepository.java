@@ -8,8 +8,7 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
-// Implement a method that retrieves a User object based on the email address.
-// The method should accept a String value representing the user's email as a parameter.
-// It should return an Optional<User>, where the result is either the found User object or empty if no user is found.
 
+    // Method to retrieve a User by email
+    Optional<User> findByEmail(String email);
 }
