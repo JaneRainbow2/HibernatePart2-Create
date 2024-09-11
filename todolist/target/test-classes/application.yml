@@ -1,0 +1,35 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: todolist
+
+  sql:
+    init:
+      platform: postgres
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/todolist
+    username: postgres
+    password: Zina2015
+
+  jpa:
+    jpa:
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    com.softserve.itacademy: INFO
+  logback:
+    rollingpolicy:
+      clean-history-on-start: true
+  file:
+    name: logs/todolist.log

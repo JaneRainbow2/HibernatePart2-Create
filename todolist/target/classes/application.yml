@@ -32,7 +32,10 @@ logging:
     rollingpolicy:
       clean-history-on-start: true
   file:
-    name: logs/todolist.log # Логи записуватимуться у файл logs/todolist.log
+    name: logs/todolist.log
+
+
+    # Логи записуватимуться у файл logs/todolist.log
 
 # Конфігурація для H2 (закоментована)
 # Розкоментуйте цей блок, якщо хочете переключитися на H2 для тестування

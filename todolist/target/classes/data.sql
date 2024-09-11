@@ -1,3 +1,10 @@
+
+DELETE FROM tasks;
+DELETE FROM todo_collaborator;
+DELETE FROM todos;
+DELETE FROM users;
+DELETE FROM states;
+
 -- SET IDENTITY_INSERT users ON
 
 INSERT INTO users (id, first_name, last_name, email, password, role) VALUES (5, 'Nick', 'Green', 'nick@mail.com', '{noop}2222', 'USER');

@@ -1,114 +1,213 @@
 package com.softserve.itacademy.service;
 
-import com.softserve.itacademy.model.User;
-import com.softserve.itacademy.repository.UserRepository;
-import com.softserve.itacademy.service.impl.UserServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+import com.softserve.itacademy.model.User;
+import com.softserve.itacademy.model.UserRole;
+import com.softserve.itacademy.repository.UserRepository;
+import com.softserve.itacademy.service.impl.UserServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-    @Mock
-    private UserRepository userRepository;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import jakarta.persistence.EntityNotFoundException;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+public class UserServiceTest {
 
     @InjectMocks
     private UserServiceImpl userService;
 
-    private User expected;
+    @Mock
+    private UserRepository userRepository;
+
+    private User user;
 
     @BeforeEach
     public void setUp() {
-        expected = new User();
-        expected.setFirstName("Mike");
-        expected.setLastName("Green");
-        expected.setEmail("green@mail.com");
-        expected.setPassword("Qwerty1!");
-    }
-
-    @AfterEach
-    public void tearDown() {
-        expected = null;
-    }
-
-    @Test
-    void testCorrectCreate() {
-        when(userRepository.save(expected)).thenReturn(expected);
-        User actual = userService.create(expected);
-
-        assertEquals(expected, actual);
-        verify(userRepository, times(1)).save(expected);
+        MockitoAnnotations.openMocks(this);
+        user = new User();
+        user.setId(1L);
+        user.setFirstName("John");
+        user.setLastName("Doe");
+        user.setEmail("john.doe@example.com");
+        user.setPassword("password123");
+        user.setRole(UserRole.USER);
     }
 
     @Test
-    void testExceptionCreate() {
-        Exception exception = assertThrows(IllegalArgumentException.class, ()
-                -> userService.create(null)
-        );
+    public void testCreateUser() {
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
-        assertEquals("User cannot be 'null'", exception.getMessage());
-        verify(userRepository, never()).save(new User());
+        User createdUser = userService.create(user);
+
+        assertNotNull(createdUser);
+        assertEquals(user.getId(), createdUser.getId());
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
-    void testCorrectReadById() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(expected));
-        User actual = userService.readById(anyLong());
+    public void testCreateUserNull() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.create(null);
+        });
 
-        assertEquals(expected, actual);
-        verify(userRepository, times(1)).findById(anyLong());
+        assertEquals("User cannot be null", thrown.getMessage());
     }
 
     @Test
-    void testExceptionReadById() {
-        Exception exception = assertThrows(EntityNotFoundException.class, ()
-                -> userService.readById(-1L)
-        );
+    public void testReadById() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 
-        assertEquals("User with id -1 not found", exception.getMessage());
-        verify(userRepository, times(1)).findById(anyLong());
+        User foundUser = userService.readById(1L);
+
+        assertNotNull(foundUser);
+        assertEquals(user.getId(), foundUser.getId());
+        verify(userRepository, times(1)).findById(1L);
     }
 
+    @Test
+    public void testReadByIdNotFound() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.readById(1L);
+        });
+
+        assertEquals("User with id 1 not found", thrown.getMessage());
+    }
 
     @Test
-    void testDelete() {
-        when(userRepository.findById(anyLong())).thenReturn(Optional.of(new User()));
-        doNothing().when(userRepository).delete(any(User.class));
+    public void testUpdateUser() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        User updatedUser = userService.update(user);
+
+        assertNotNull(updatedUser);
+        assertEquals(user.getId(), updatedUser.getId());
+        verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    public void testUpdateUserNotFound() {
+        when(userRepository.existsById(anyLong())).thenReturn(false);
+
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.update(user);
+        });
+
+        assertEquals("User with id 1 not found", thrown.getMessage());
+    }
+
+    @Test
+    public void testDeleteUser() {
+        when(userRepository.existsById(anyLong())).thenReturn(true);
+
         userService.delete(1L);
 
-        verify(userRepository, times(1)).findById(anyLong());
-        verify(userRepository, times(1)).delete(any(User.class));
+        verify(userRepository, times(1)).deleteById(1L);
     }
 
     @Test
-    void testGetAll() {
-        List<User> expectedUsers = List.of(new User(), new User(), new User());
+    public void testDeleteUserNotFound() {
+        when(userRepository.existsById(anyLong())).thenReturn(false);
 
-        when(userRepository.findAll()).thenReturn(expectedUsers);
-        List<User> actual = userService.getAll();
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.delete(1L);
+        });
 
-        assertEquals(expectedUsers, actual);
+        assertEquals("User with id 1 not found", thrown.getMessage());
+    }
+
+    @Test
+    public void testGetAllUsers() {
+        when(userRepository.findAll()).thenReturn(Collections.singletonList(user));
+
+        List<User> users = userService.getAll();
+
+        assertFalse(users.isEmpty());
+        assertEquals(1, users.size());
+        assertEquals(user.getId(), users.get(0).getId());
         verify(userRepository, times(1)).findAll();
     }
 
+    @Test
+    public void testGetAllUsersNoUsers() {
+        when(userRepository.findAll()).thenReturn(Collections.emptyList());
 
-//    @Test
-//    void testExceptionLoadUserByUsername() {
-//        assertThat(userService.findByEmail(anyString())).isEmpty();
-//        verify(userRepository, times(1)).findByEmail(anyString());
-//    }
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.getAll();
+        });
+
+        assertEquals("No users found", thrown.getMessage());
+    }
+
+    @Test
+    public void testFindByEmail() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+
+        Optional<User> foundUser = userService.findByEmail("john.doe@example.com");
+
+        assertTrue(foundUser.isPresent());
+        assertEquals(user.getId(), foundUser.get().getId());
+    }
+
+    @Test
+    public void testFindByEmailNotFound() {
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.findByEmail("john.doe@example.com");
+        });
+
+        assertEquals("User with email john.doe@example.com not found", thrown.getMessage());
+    }
+
+    @Test
+    public void testFindByEmailNull() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.findByEmail(null);
+        });
+
+        assertEquals("Email cannot be null or empty", thrown.getMessage());
+    }
+
+    @Test
+    public void testFindByEmailEmpty() {
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> {
+            userService.findByEmail("");
+        });
+
+        assertEquals("Email cannot be null or empty", thrown.getMessage());
+    }
+
+    @Test
+    public void testFindById() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+        Optional<User> foundUser = userService.findById(1L);
+
+        assertTrue(foundUser.isPresent());
+        assertEquals(user.getId(), foundUser.get().getId());
+    }
+
+    @Test
+    public void testFindByIdNotFound() {
+        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        EntityNotFoundException thrown = assertThrows(EntityNotFoundException.class, () -> {
+            userService.findById(1L);
+        });
+
+        assertEquals("User with id 1 not found", thrown.getMessage());
+    }
 }
